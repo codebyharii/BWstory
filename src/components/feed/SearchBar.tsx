@@ -27,6 +27,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         placeholder={placeholder}
         placeholderTextColor={colors.slate}
         style={styles.input}
+        autoCorrect={false}
+        autoComplete="off"
+        spellCheck={false}
       />
       {onFilterPress && (
         <TouchableOpacity onPress={onFilterPress} style={styles.filter}>
@@ -53,6 +56,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.dmSans.regular,
     fontSize: typography.sizes.base,
     color: colors.navy,
+    backgroundColor: 'transparent',
+    // Web: remove default browser focus ring and autocomplete black box
+    // @ts-ignore — web-only properties
+    outlineStyle: 'none',
+    outlineWidth: 0,
+    boxShadow: 'none',
   },
   filter: {
     paddingLeft: spacing.xs,

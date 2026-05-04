@@ -247,9 +247,9 @@ const styles = StyleSheet.create({
   tabBtn: {
     flex:           1,
     alignItems:     'center',
-    justifyContent: 'flex-end',       // align from bottom so labels line up
-    paddingBottom:  8,
-    gap:            3,
+    justifyContent: 'center',        // icons centred vertically in the cell
+    gap:            4,
+    paddingVertical: 6,
   },
   tabLabel: {
     fontFamily: typography.fonts.dmSans.medium,
@@ -257,20 +257,19 @@ const styles = StyleSheet.create({
     lineHeight: 12,
     textAlign:  'center',
   },
-  // Center Add button — raised with negative marginTop, stays in same flex cell
+  // Center Add button — same height as other tabs, green circle
   centerBtn: {
-    width:           48,
-    height:          48,
-    borderRadius:    24,
+    width:           44,
+    height:          44,
+    borderRadius:    22,
     backgroundColor: colors.forest,
     alignItems:      'center',
     justifyContent:  'center',
-    marginTop:       -18,            // raises it above the bar line
     shadowColor:     colors.forest,
-    shadowOffset:    { width: 0, height: 4 },
-    shadowOpacity:   0.65,
-    shadowRadius:    10,
-    elevation:       14,
+    shadowOffset:    { width: 0, height: 3 },
+    shadowOpacity:   0.55,
+    shadowRadius:    8,
+    elevation:       10,
     borderWidth:     0.5,
     borderColor:     'rgba(255,255,255,0.28)',
   },
