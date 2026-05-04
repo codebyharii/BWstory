@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import { Avatar } from '../../components/common/Avatar';
 import { Button } from '../../components/common/Button';
 import { colors, typography, spacing, border } from '../../theme/theme';
+import { useNavigation } from '../../context/NavigationContext';
 
 const FOLLOWERS = [
   { id: '1', name: 'Priya Kapoor', username: '@priyakapoor', avatar: 'https://i.pravatar.cc/150?u=priya', isFollowing: true },
@@ -13,10 +14,11 @@ const FOLLOWERS = [
 ];
 
 export const FollowersScreen: React.FC = () => {
+  const { goBack } = useNavigation();
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <TouchableOpacity><ChevronLeft size={22} color={colors.navy} /></TouchableOpacity>
+        <TouchableOpacity onPress={goBack} activeOpacity={0.7}><ChevronLeft size={22} color={colors.navy} /></TouchableOpacity>
         <Text style={styles.title}>Followers</Text>
         <View style={{ width: 22 }} />
       </View>

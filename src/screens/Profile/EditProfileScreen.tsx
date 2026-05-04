@@ -7,21 +7,23 @@ import { Avatar } from '../../components/common/Avatar';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { colors, typography, spacing, border } from '../../theme/theme';
+import { useNavigation } from '../../context/NavigationContext';
 
 export const EditProfileScreen: React.FC = () => {
   const [name, setName] = useState('Neha Sharma');
   const [location, setLocation] = useState('Greater Noida');
   const [profession, setProfession] = useState('Anchor');
   const [bio, setBio] = useState('Telling stories that matter.');
+  const { goBack } = useNavigation();
 
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity><ChevronLeft size={22} color={colors.navy} /></TouchableOpacity>
+          <TouchableOpacity onPress={goBack} activeOpacity={0.7}><ChevronLeft size={22} color={colors.navy} /></TouchableOpacity>
           <Text style={styles.title}>Update Account</Text>
-          <Button label="Save" onPress={() => {}} size="sm" />
+          <Button label="Save" onPress={goBack} size="sm" />
         </View>
 
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">

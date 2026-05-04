@@ -5,8 +5,10 @@ import { ActionBar } from '../../components/feed/ActionBar';
 import { Avatar } from '../../components/common/Avatar';
 import { Badge } from '../../components/common/Badge';
 import { colors, typography, spacing, border } from '../../theme/theme';
+import { useNavigation } from '../../context/NavigationContext';
 
 export const NewsDetailScreen: React.FC = () => {
+  const { goBack } = useNavigation();
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -17,7 +19,7 @@ export const NewsDetailScreen: React.FC = () => {
             style={styles.heroImage}
           />
           <View style={styles.heroOverlay}>
-            <TouchableOpacity style={styles.backBtn}>
+            <TouchableOpacity style={styles.backBtn} onPress={goBack} activeOpacity={0.7}>
               <ChevronLeft size={22} color={colors.white} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.shareBtn}>

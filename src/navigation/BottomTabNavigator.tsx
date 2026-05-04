@@ -1,8 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { GlassTabBar, TAB_BAR_HEIGHT } from '../components/navigation/GlassTabBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollProvider } from '../context/ScrollContext';
+import { NavigationProvider, useNavigation } from '../context/NavigationContext';
 import { NewsFeedScreen } from '../screens/Feed/NewsFeedScreen';
 import { SocialFeedScreen } from '../screens/Social/SocialFeedScreen';
 import { AddStoryScreen } from '../screens/Feed/AddStoryScreen';
@@ -20,39 +21,41 @@ const SCREENS: Record<TabKey, React.FC> = {
   Me:     ProfileScreen,
 };
 
-export const BottomTabNavigator: React.FC = () => {
-  const [activeTab, setActiveTab]   = useState<TabKey>('Feed');
-  const insets = useSafeAreaInsets();
+// Inner component that reads from NavigationContext
+const TabContent: React.FC = () => {
+  const { activeTab, navigate } = useNavigation();
+  const insets    = useSafeAreaInsets();
   const tabBarRef = useRef<any>(null);
 
-  // This function is called by the active screen's FlatList onScroll
-  const handleScroll = useCallback((event: any) => {
-    // Forward to the GlassTabBar's internal scroll handler via ref
+  const handleScroll = (event: any) => {
     tabBarRef.current?.handleScroll?.(event);
-  }, []);
+  };
 
   const ActiveScreen = SCREENS[activeTab];
 
   return (
     <ScrollProvider onScroll={handleScroll}>
       <View style={styles.root}>
-        {/* Screen content — bottom padded so nothing hides under the tab bar */}
-        <View style={[styles.screenWrapper, {
-          paddingBottom: TAB_BAR_HEIGHT + insets.bottom,
-        }]}>
+        <View style={[styles.screenWrapper, { paddingBottom: TAB_BAR_HEIGHT + insets.bottom }]}>
           <ActiveScreen />
         </View>
 
-        {/* Floating glass tab bar */}
         <GlassTabBar
           ref={tabBarRef}
           activeTab={activeTab}
-          onTabPress={(key) => setActiveTab(key as TabKey)}
+          onTabPress={(key) => navigate(key as TabKey)}
         />
       </View>
     </ScrollProvider>
   );
 };
+
+// Outer component that provides the NavigationContext
+export const BottomTabNavigator: React.FC = () => (
+  <NavigationProvider>
+    <TabContent />
+  </NavigationProvider>
+);
 
 const styles = StyleSheet.create({
   root: {

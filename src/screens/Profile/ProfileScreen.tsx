@@ -4,6 +4,7 @@ import { ProfileHeader } from '../../components/profile/ProfileHeader';
 import { StatsRow } from '../../components/profile/StatsRow';
 import { PostGrid } from '../../components/profile/PostGrid';
 import { colors } from '../../theme/theme';
+import { useNavigation } from '../../context/NavigationContext';
 
 const POSTS = [
   { id: '1', thumbnail: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80', type: 'image' as const },
@@ -15,6 +16,7 @@ const POSTS = [
 ];
 
 export const ProfileScreen: React.FC = () => {
+  const { navigate } = useNavigation();
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -24,6 +26,7 @@ export const ProfileScreen: React.FC = () => {
           profession="Anchor | News Creator"
           bio="Telling stories that matter. Fast and local news from around India 🇮🇳"
           isOwn
+          onEdit={() => navigate('Add')} // Placeholder — Edit navigates to AddStory for now
         />
         <StatsRow
           stats={[

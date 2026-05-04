@@ -5,20 +5,29 @@ import {
 import { ChevronLeft, Image as ImageIcon, Video, MapPin } from 'lucide-react-native';
 import { Button } from '../../components/common/Button';
 import { colors, typography, spacing, border } from '../../theme/theme';
+import { useNavigation } from '../../context/NavigationContext';
 
 export const AddStoryScreen: React.FC = () => {
   const [content, setContent] = useState('');
+  const { goBack } = useNavigation();
 
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={goBack} activeOpacity={0.7}>
             <ChevronLeft size={22} color={colors.navy} />
           </TouchableOpacity>
           <Text style={styles.title}>Add Story</Text>
-          <Button label="Publish" onPress={() => {}} size="sm" />
+          <Button
+            label="Publish"
+            onPress={() => {
+              // TODO: submit post to API
+              goBack();
+            }}
+            size="sm"
+          />
         </View>
 
         {/* Text Area */}
