@@ -53,7 +53,45 @@ const ActivityRow: React.FC<{ item: ActivityItem }> = memo(({ item }) => {
 
 ActivityRow.displayName = 'ActivityRow';
 
-// ─── List header — static element, not re-created inside render ───────────────
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const styles = StyleSheet.create({
+  safe:    { flex: 1, backgroundColor: colors.offWhite },
+  tabs:    { flexDirection: 'row', backgroundColor: colors.white, borderBottomWidth: border.width, borderBottomColor: colors.border },
+  tab:     { flex: 1, paddingVertical: spacing.m, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabActive: { borderBottomColor: colors.forest },
+  tabText:   { fontFamily: typography.fonts.sora.medium, fontSize: typography.sizes.base, color: colors.slate },
+  tabTextActive: { color: colors.navy },
+
+  list:          { paddingVertical: spacing.m },
+  sectionHeader: { paddingHorizontal: spacing.screenPadding, paddingVertical: spacing.s },
+  sectionTitle:  { fontFamily: typography.fonts.sora.semiBold, fontSize: typography.sizes.base, color: colors.navy },
+  separator:     { height: 0.5, backgroundColor: colors.border, marginHorizontal: spacing.screenPadding },
+
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.screenPadding,
+    paddingVertical: spacing.m,
+    gap: spacing.m,
+    backgroundColor: colors.white,
+  },
+  rowUnread: { backgroundColor: `${colors.mint}28` },
+
+  avatarWrap: { position: 'relative' },
+  unreadDot: {
+    position: 'absolute', top: 0, right: 0,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: colors.forest,
+    borderWidth: 1.5, borderColor: colors.white,
+  },
+
+  meta:     { flex: 1, gap: 2 },
+  rowText:  { fontFamily: typography.fonts.dmSans.regular, fontSize: typography.sizes.base, color: colors.navy, lineHeight: typography.lineHeights.normal },
+  userName: { fontFamily: typography.fonts.sora.semiBold },
+  rowTime:  { fontFamily: typography.fonts.dmSans.regular, fontSize: typography.sizes.xs, color: colors.slate },
+});
+
+// ─── List header — static element ─────────────────────────────────────────────
 const ListHeader = (
   <View style={styles.sectionHeader}>
     <Text style={styles.sectionTitle}>Today</Text>
@@ -108,41 +146,3 @@ export const SocialFeedScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: colors.offWhite },
-  tabs:    { flexDirection: 'row', backgroundColor: colors.white, borderBottomWidth: border.width, borderBottomColor: colors.border },
-  tab:     { flex: 1, paddingVertical: spacing.m, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabActive: { borderBottomColor: colors.forest },
-  tabText:   { fontFamily: typography.fonts.sora.medium, fontSize: typography.sizes.base, color: colors.slate },
-  tabTextActive: { color: colors.navy },
-
-  list:          { paddingVertical: spacing.m },
-  sectionHeader: { paddingHorizontal: spacing.screenPadding, paddingVertical: spacing.s },
-  sectionTitle:  { fontFamily: typography.fonts.sora.semiBold, fontSize: typography.sizes.base, color: colors.navy },
-  separator:     { height: 0.5, backgroundColor: colors.border, marginHorizontal: spacing.screenPadding },
-
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.screenPadding,
-    paddingVertical: spacing.m,
-    gap: spacing.m,
-    backgroundColor: colors.white,
-  },
-  rowUnread: { backgroundColor: `${colors.mint}28` },
-
-  avatarWrap: { position: 'relative' },
-  unreadDot: {
-    position: 'absolute', top: 0, right: 0,
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: colors.forest,
-    borderWidth: 1.5, borderColor: colors.white,
-  },
-
-  meta:     { flex: 1, gap: 2 },
-  rowText:  { fontFamily: typography.fonts.dmSans.regular, fontSize: typography.sizes.base, color: colors.navy, lineHeight: typography.lineHeights.normal },
-  userName: { fontFamily: typography.fonts.sora.semiBold },
-  rowTime:  { fontFamily: typography.fonts.dmSans.regular, fontSize: typography.sizes.xs, color: colors.slate },
-});
