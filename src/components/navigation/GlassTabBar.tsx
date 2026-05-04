@@ -13,7 +13,6 @@ import Reanimated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { Home, Users, Plus, Bell, User } from 'lucide-react-native';
 import { colors, typography, spacing } from '../../theme/theme';
@@ -38,45 +37,45 @@ function TabButton({ tabKey, label, Icon, isCenter, isActive, onPress }: {
   isActive: boolean;
   onPress: () => void;
 }) {
-  const scale   = useSharedValue(isActive ? 1.08 : 1);
-  const opacity = useSharedValue(isActive ? 1 : 0.45);
+  const scale = useSharedValue(isActive ? 1.08 : 1);
 
   useEffect(() => {
-    scale.value   = withSpring(isActive ? 1.08 : 1,  { damping: 7, stiffness: 260 });
-    opacity.value = withTiming(isActive ? 1   : 0.45, { duration: 180 });
+    scale.value = withSpring(isActive ? 1.08 : 1, { damping: 7, stiffness: 260 });
   }, [isActive]);
 
   const handlePress = () => {
-    scale.value = withSpring(1.3, { damping: 5, stiffness: 300 }, () => {
+    scale.value = withSpring(1.28, { damping: 5, stiffness: 300 }, () => {
       scale.value = withSpring(isActive ? 1.08 : 1, { damping: 8, stiffness: 220 });
     });
     onPress();
   };
 
-  const iconAnim  = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  const labelAnim = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  const iconColor = isActive ? '#fff' : 'rgba(255,255,255,0.45)';
+  const iconAnim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
+  // Active = white, Inactive = muted white — BOTH always visible
+  const iconColor  = isActive ? '#FFFFFF' : 'rgba(255,255,255,0.52)';
+  const labelColor = isActive ? '#FFFFFF' : 'rgba(255,255,255,0.48)';
+
+  // ── Center "+" button — sits at the same flex level, just visually raised ──
   if (isCenter) {
     return (
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.8} style={styles.centerWrapper}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.8} style={styles.tabBtn}>
         <Reanimated.View style={[styles.centerBtn, iconAnim]}>
-          <Icon size={24} color="#fff" strokeWidth={2.5} />
+          <Icon size={22} color="#fff" strokeWidth={2.5} />
         </Reanimated.View>
+        {/* Empty label placeholder to keep height consistent */}
+        <Text style={[styles.tabLabel, { color: 'transparent' }]}>{'·'}</Text>
       </TouchableOpacity>
     );
   }
 
+  // ── Regular tab — icon + label always shown ────────────────────────────────
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.7} style={styles.tabBtn}>
       <Reanimated.View style={iconAnim}>
         <Icon size={22} color={iconColor} strokeWidth={isActive ? 2.5 : 1.8} />
       </Reanimated.View>
-      {label ? (
-        <Reanimated.Text style={[styles.tabLabel, { color: iconColor }, labelAnim]}>
-          {label}
-        </Reanimated.Text>
-      ) : null}
+      <Text style={[styles.tabLabel, { color: labelColor }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -240,41 +239,39 @@ const styles = StyleSheet.create({
   inner: {
     flex:             1,
     flexDirection:    'row',
-    alignItems:       'center',
-    paddingHorizontal: 4,
-    paddingTop:       6,
+    alignItems:       'stretch',     // all tab cells same height
+    paddingHorizontal: 0,
+    paddingTop:       0,
   },
+  // Every tab cell — same size, same layout
   tabBtn: {
     flex:           1,
     alignItems:     'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
+    justifyContent: 'flex-end',       // align from bottom so labels line up
+    paddingBottom:  8,
     gap:            3,
   },
   tabLabel: {
     fontFamily: typography.fonts.dmSans.medium,
     fontSize:   10,
     lineHeight: 12,
+    textAlign:  'center',
   },
-  centerWrapper: {
-    flex:           1,
-    alignItems:     'center',
-    justifyContent: 'flex-start',
-    marginTop:      -22,
-  },
+  // Center Add button — raised with negative marginTop, stays in same flex cell
   centerBtn: {
-    width:           52,
-    height:          52,
-    borderRadius:    26,
+    width:           48,
+    height:          48,
+    borderRadius:    24,
     backgroundColor: colors.forest,
     alignItems:      'center',
     justifyContent:  'center',
+    marginTop:       -18,            // raises it above the bar line
     shadowColor:     colors.forest,
     shadowOffset:    { width: 0, height: 4 },
     shadowOpacity:   0.65,
-    shadowRadius:    12,
+    shadowRadius:    10,
     elevation:       14,
     borderWidth:     0.5,
-    borderColor:     'rgba(255,255,255,0.3)',
+    borderColor:     'rgba(255,255,255,0.28)',
   },
 });
