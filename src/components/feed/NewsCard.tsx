@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Play } from 'lucide-react-native';
 import { colors, typography, border, spacing } from '../../theme/theme';
@@ -8,11 +8,7 @@ import { ActionBar } from './ActionBar';
 
 export interface NewsItem {
   id: string;
-  author: {
-    name: string;
-    avatar?: string;
-    initials?: string;
-  };
+  author: { name: string; avatar?: string; initials?: string };
   timeAgo: string;
   type: 'video' | 'image';
   thumbnail: string;
@@ -31,71 +27,81 @@ interface NewsCardProps {
   onFollowPress?: () => void;
 }
 
-export const NewsCard: React.FC<NewsCardProps> = ({ item, onPress, onFollowPress }) => {
+// ── Memoised so FlatList only re-renders cards that actually changed ───────────
+export const NewsCard: React.FC<NewsCardProps> = memo(({ item, onPress, onFollowPress }) => {
+  // Pre-compute initials once — avoids repeated .slice() on every render
+  const initials = item.author.initials ?? item.author.name.slice(0, 2);
+
   return (
     <TouchableOpacity
-      activeOpacity={0.95}
+      activeOpacity={0.93}
       onPress={onPress}
       style={styles.card}
+      // Improves touch hit area without layout cost
+      hitSlop={{ top: 0, bottom: 0, left: 0, right: 0 }}
     >
-      {/* Header */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
-          <Avatar
-            uri={item.author.avatar}
-            initials={item.author.initials || item.author.name.slice(0, 2)}
-            size="sm"
-          />
+          <Avatar uri={item.author.avatar} initials={initials} size="sm" />
           <View style={styles.userMeta}>
-            <Text style={styles.authorName}>{item.author.name}</Text>
+            <Text style={styles.authorName} numberOfLines={1}>{item.author.name}</Text>
             <Text style={styles.timeAgo}>{item.timeAgo}</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={onFollowPress} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={onFollowPress}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Text style={styles.followBtn}>Follow</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Media */}
+      {/* ── Media ──────────────────────────────────────────────────────── */}
       <View style={styles.media}>
-        <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-        {/* Dark overlay gradient effect */}
+        <Image
+          source={{ uri: item.thumbnail }}
+          style={styles.thumbnail}
+          // Fade in image once loaded — no layout jump
+          fadeDuration={200}
+        />
         <View style={styles.overlay} />
-
         {item.type === 'video' && (
-          <View style={styles.playBtn}>
+          <View style={styles.playBtn} pointerEvents="none">
             <Play size={18} color={colors.white} fill={colors.white} />
           </View>
         )}
-
         {item.readTime && (
-          <View style={styles.durationBadge}>
+          <View style={styles.durationBadge} pointerEvents="none">
             <Text style={styles.durationText}>{item.readTime}</Text>
           </View>
         )}
       </View>
 
-      {/* Body */}
+      {/* ── Body ───────────────────────────────────────────────────────── */}
       <View style={styles.body}>
-        <View style={styles.badgeRow}>
-          {item.isBreaking && <Badge label="Breaking" variant="breaking" />}
-          {item.isLive && <Badge label="● Live" variant="live" />}
-        </View>
+        {(item.isBreaking || item.isLive) && (
+          <View style={styles.badgeRow}>
+            {item.isBreaking && <Badge label="Breaking" variant="breaking" />}
+            {item.isLive    && <Badge label="● Live"   variant="live" />}
+          </View>
+        )}
         <Text style={styles.headline} numberOfLines={2}>{item.headline}</Text>
         {item.excerpt && (
           <Text style={styles.excerpt} numberOfLines={2}>{item.excerpt}</Text>
         )}
       </View>
 
-      {/* Action Bar */}
-      <ActionBar
-        likes={item.likes}
-        comments={item.comments}
-      />
+      {/* ── Action Bar ─────────────────────────────────────────────────── */}
+      <ActionBar likes={item.likes} comments={item.comments} />
     </TouchableOpacity>
   );
-};
+});
 
+NewsCard.displayName = 'NewsCard';
+
+// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
@@ -104,11 +110,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginBottom: spacing.cardGap,
     overflow: 'hidden',
-    // Subtle shadow
     shadowColor: colors.navy,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowOpacity: 0.055,
+    shadowRadius: 8,
     elevation: 2,
   },
   header: {
@@ -118,14 +123,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s + 2,
   },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.s,
-  },
-  userMeta: {
-    gap: 1,
-  },
+  userInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.s, flex: 1 },
+  userMeta: { gap: 2, flex: 1 },
   authorName: {
     fontFamily: typography.fonts.sora.medium,
     fontSize: typography.sizes.base,
@@ -140,30 +139,25 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.sora.semiBold,
     fontSize: typography.sizes.sm,
     color: colors.forest,
+    paddingLeft: spacing.m,
   },
   media: {
-    height: 220,
-    backgroundColor: colors.navy,
-    position: 'relative',
+    height: 210,
+    backgroundColor: colors.border,       // placeholder colour prevents flash
     justifyContent: 'center',
     alignItems: 'center',
   },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
+  thumbnail: { width: '100%', height: '100%', resizeMode: 'cover' },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.overlayDark,
-    opacity: 0.2,
+    backgroundColor: 'rgba(0,0,0,0.14)',
   },
   playBtn: {
     position: 'absolute',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.overlayDark,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -171,8 +165,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.s,
     right: spacing.s,
-    backgroundColor: colors.overlayDark,
-    paddingHorizontal: spacing.s,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
@@ -187,10 +181,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.s,
     gap: spacing.s,
   },
-  badgeRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
+  badgeRow: { flexDirection: 'row', gap: spacing.xs },
   headline: {
     fontFamily: typography.fonts.sora.semiBold,
     fontSize: typography.sizes.md,

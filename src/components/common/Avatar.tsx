@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
 import { colors, typography, border } from '../../theme/theme';
 
@@ -12,51 +12,41 @@ interface AvatarProps {
   style?: ViewStyle;
 }
 
-const sizeMap: Record<AvatarSize, number> = {
-  xs: 24,
-  sm: 32,
-  md: 44,
-  lg: 64,
-  xl: 88,
-};
+// Static lookup — O(1), computed once at module load
+const SIZE: Record<AvatarSize, number> = { xs: 24, sm: 32, md: 44, lg: 64, xl: 88 };
 
-export const Avatar: React.FC<AvatarProps> = ({
-  uri,
-  initials = '?',
-  size = 'md',
-  showBadge = false,
-  style,
+export const Avatar: React.FC<AvatarProps> = memo(({
+  uri, initials = '?', size = 'md', showBadge = false, style,
 }) => {
-  const dimension = sizeMap[size];
-  const fontSize = dimension * 0.35;
+  const dim      = SIZE[size];
+  const radius   = dim / 2;
+  const fontSize = Math.round(dim * 0.35);
 
   return (
     <View style={[styles.wrapper, style]}>
-      <View
-        style={[
-          styles.container,
-          { width: dimension, height: dimension, borderRadius: dimension / 2 },
-        ]}
-      >
+      <View style={[styles.circle, { width: dim, height: dim, borderRadius: radius }]}>
         {uri ? (
           <Image
             source={{ uri }}
-            style={[styles.image, { borderRadius: dimension / 2 }]}
+            style={[styles.image, { borderRadius: radius }]}
+            fadeDuration={150}
           />
         ) : (
-          <Text style={[styles.initials, { fontSize }]}>{initials.slice(0, 2).toUpperCase()}</Text>
+          <Text style={[styles.initials, { fontSize }]}>
+            {initials.slice(0, 2).toUpperCase()}
+          </Text>
         )}
       </View>
-      {showBadge && <View style={styles.onlineBadge} />}
+      {showBadge && <View style={styles.badge} />}
     </View>
   );
-};
+});
+
+Avatar.displayName = 'Avatar';
 
 const styles = StyleSheet.create({
-  wrapper: {
-    position: 'relative',
-  },
-  container: {
+  wrapper: { position: 'relative' },
+  circle: {
     backgroundColor: colors.mint,
     alignItems: 'center',
     justifyContent: 'center',
@@ -64,16 +54,12 @@ const styles = StyleSheet.create({
     borderWidth: border.width,
     borderColor: colors.border,
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
+  image: { width: '100%', height: '100%', resizeMode: 'cover' },
   initials: {
     fontFamily: typography.fonts.sora.semiBold,
     color: colors.forest,
   },
-  onlineBadge: {
+  badge: {
     position: 'absolute',
     bottom: 1,
     right: 1,
