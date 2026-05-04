@@ -9,7 +9,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export --platform web",
+    "vercel-build": "expo export --platform web",
     "lint": "expo lint"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
