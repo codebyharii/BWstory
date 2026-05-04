@@ -5,6 +5,7 @@ import { NewsCard, NewsItem } from '../../components/feed/NewsCard';
 import { SearchBar } from '../../components/feed/SearchBar';
 import { AlignJustify } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
+import { useScrollContext } from '../../context/ScrollContext';
 
 const MOCK_NEWS: NewsItem[] = [
   {
@@ -49,6 +50,7 @@ const MOCK_NEWS: NewsItem[] = [
 
 export const NewsFeedScreen: React.FC = () => {
   const [search, setSearch] = useState('');
+  const { onScroll } = useScrollContext();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -72,6 +74,8 @@ export const NewsFeedScreen: React.FC = () => {
         renderItem={({ item }) => <NewsCard item={item} />}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       />
     </SafeAreaView>
   );

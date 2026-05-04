@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useImperativeHandle, forwardRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
-  Dimensions,
+  Easing,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, {
@@ -15,165 +15,161 @@ import Reanimated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { BlurView } from '@react-native-community/blur';
-import {
-  Home,
-  Users,
-  Plus,
-  Bell,
-  User,
-} from 'lucide-react-native';
+import { Home, Users, Plus, Bell, User } from 'lucide-react-native';
 import { colors, typography, spacing } from '../../theme/theme';
 
-export const TAB_BAR_HEIGHT = 64;
+export const TAB_BAR_HEIGHT = 58;
 
-export interface TabItem {
-  key: string;
-  label: string;
-  Icon: React.ComponentType<any>;
-  isCenter?: boolean;
-}
-
-const TABS: TabItem[] = [
-  { key: 'Feed',    label: 'Feed',    Icon: Home },
-  { key: 'Social',  label: 'Social',  Icon: Users },
-  { key: 'Add',     label: '',        Icon: Plus, isCenter: true },
-  { key: 'Alerts',  label: 'Alerts',  Icon: Bell },
-  { key: 'Me',      label: 'Me',      Icon: User },
+// ─── Tab definitions ──────────────────────────────────────────────────────────
+const TABS = [
+  { key: 'Feed',   label: 'Feed',   Icon: Home },
+  { key: 'Social', label: 'Social', Icon: Users },
+  { key: 'Add',    label: '',       Icon: Plus,  isCenter: true },
+  { key: 'Alerts', label: 'Alerts', Icon: Bell },
+  { key: 'Me',     label: 'Me',     Icon: User },
 ];
 
-// ── Individual animated tab item ──────────────────────────────────────────────
-interface TabButtonProps {
-  tab: TabItem;
+// ─── Single animated tab button ───────────────────────────────────────────────
+function TabButton({ tabKey, label, Icon, isCenter, isActive, onPress }: {
+  tabKey: string;
+  label: string;
+  Icon: any;
+  isCenter?: boolean;
   isActive: boolean;
   onPress: () => void;
-}
+}) {
+  const scale   = useSharedValue(isActive ? 1.08 : 1);
+  const opacity = useSharedValue(isActive ? 1 : 0.45);
 
-const TabButton: React.FC<TabButtonProps> = ({ tab, isActive, onPress }) => {
-  const scale   = useSharedValue(1);
-  const opacity = useSharedValue(isActive ? 1 : 0);
-
-  const animatedIconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const animatedLabelStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
-  const handlePress = useCallback(() => {
-    // Spring bounce on press
-    scale.value = withSpring(1.25, { damping: 6, stiffness: 280 }, () => {
-      scale.value = withSpring(isActive ? 1.1 : 1, { damping: 8, stiffness: 200 });
-    });
-    opacity.value = withTiming(1, { duration: 150 });
-    onPress();
-  }, [isActive, onPress]);
-
-  // Sync active state changes from outside
-  React.useEffect(() => {
-    scale.value   = withSpring(isActive ? 1.1 : 1, { damping: 8, stiffness: 200 });
-    opacity.value = withTiming(isActive ? 1 : 0, { duration: 200 });
+  useEffect(() => {
+    scale.value   = withSpring(isActive ? 1.08 : 1,  { damping: 7, stiffness: 260 });
+    opacity.value = withTiming(isActive ? 1   : 0.45, { duration: 180 });
   }, [isActive]);
 
-  const iconColor = isActive ? colors.white : 'rgba(255,255,255,0.45)';
-  const { Icon } = tab;
+  const handlePress = () => {
+    scale.value = withSpring(1.3, { damping: 5, stiffness: 300 }, () => {
+      scale.value = withSpring(isActive ? 1.08 : 1, { damping: 8, stiffness: 220 });
+    });
+    onPress();
+  };
 
-  // ── Center "Add" button ────────────────────────────────────────────────────
-  if (tab.isCenter) {
+  const iconAnim  = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const labelAnim = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const iconColor = isActive ? '#fff' : 'rgba(255,255,255,0.45)';
+
+  if (isCenter) {
     return (
-      <TouchableOpacity
-        onPress={handlePress}
-        activeOpacity={0.85}
-        style={styles.centerWrapper}
-      >
-        <Reanimated.View style={[styles.centerBtn, animatedIconStyle]}>
-          <Icon size={26} color={colors.white} strokeWidth={2.5} />
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.8} style={styles.centerWrapper}>
+        <Reanimated.View style={[styles.centerBtn, iconAnim]}>
+          <Icon size={24} color="#fff" strokeWidth={2.5} />
         </Reanimated.View>
       </TouchableOpacity>
     );
   }
 
-  // ── Regular tab ────────────────────────────────────────────────────────────
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      activeOpacity={0.7}
-      style={styles.tabBtn}
-    >
-      <Reanimated.View style={animatedIconStyle}>
-        <Icon
-          size={22}
-          color={iconColor}
-          strokeWidth={isActive ? 2.5 : 2}
-        />
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.7} style={styles.tabBtn}>
+      <Reanimated.View style={iconAnim}>
+        <Icon size={22} color={iconColor} strokeWidth={isActive ? 2.5 : 1.8} />
       </Reanimated.View>
-      {tab.label ? (
-        <Reanimated.Text
-          style={[
-            styles.tabLabel,
-            { color: iconColor },
-            animatedLabelStyle,
-          ]}
-        >
-          {tab.label}
+      {label ? (
+        <Reanimated.Text style={[styles.tabLabel, { color: iconColor }, labelAnim]}>
+          {label}
         </Reanimated.Text>
       ) : null}
     </TouchableOpacity>
   );
-};
+}
 
-// ── Main GlassTabBar ──────────────────────────────────────────────────────────
+// ─── Ref type exposed to parent ───────────────────────────────────────────────
+export interface GlassTabBarRef {
+  handleScroll: (event: any) => void;
+}
+
+// ─── Main GlassTabBar ─────────────────────────────────────────────────────────
 interface GlassTabBarProps {
   activeTab: string;
   onTabPress: (key: string) => void;
-  /** Pass the Animated.Value from the parent's scroll handler */
-  scrollY: Animated.Value;
 }
 
-export const GlassTabBar: React.FC<GlassTabBarProps> = ({
-  activeTab,
-  onTabPress,
-  scrollY,
-}) => {
-  const insets     = useSafeAreaInsets();
+const GlassTabBarInner = (
+  { activeTab, onTabPress }: GlassTabBarProps,
+  ref: React.Ref<GlassTabBarRef>
+) => {
+  const insets      = useSafeAreaInsets();
   const lastScrollY = useRef(0);
   const slideAnim   = useRef(new Animated.Value(0)).current;
+  const barHeight   = TAB_BAR_HEIGHT + insets.bottom;
 
-  // Listen to scroll and hide/show bar
-  const onScroll = useCallback(
-    Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-      useNativeDriver: false,
-      listener: (event: any) => {
-        const currentY  = event.nativeEvent.contentOffset.y;
-        const direction = currentY > lastScrollY.current ? 'down' : 'up';
-        lastScrollY.current = currentY;
+  const handleScroll = (event: any) => {
+    const y = event?.nativeEvent?.contentOffset?.y ?? 0;
+    const direction = y > lastScrollY.current ? 'down' : 'up';
+    lastScrollY.current = y;
 
-        Animated.timing(slideAnim, {
-          toValue:         direction === 'down' && currentY > 60 ? TAB_BAR_HEIGHT + insets.bottom : 0,
-          duration:        250,
-          useNativeDriver: true,
-          easing:          require('react-native').Easing?.out?.(require('react-native').Easing?.ease) ?? undefined,
-        }).start();
-      },
-    }),
-    [insets.bottom]
-  );
+    Animated.timing(slideAnim, {
+      toValue:         direction === 'down' && y > 40 ? barHeight + 12 : 0,
+      duration:        230,
+      easing:          Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  };
 
-  const barHeight = TAB_BAR_HEIGHT + insets.bottom + 8;
+  useImperativeHandle(ref, () => ({ handleScroll }));
 
-  const Inner = (
-    <View style={[styles.inner, { paddingBottom: insets.bottom + 8 }]}>
-      {TABS.map((tab) => (
-        <TabButton
-          key={tab.key}
-          tab={tab}
-          isActive={activeTab === tab.key}
-          onPress={() => onTabPress(tab.key)}
-        />
-      ))}
-    </View>
-  );
+  // Web: find the RN Web FlatList scroll container and attach a native DOM listener
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    let lastY = 0;
+    let attached: Element | null = null;
+
+    const onNativeScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const y = target.scrollTop;
+      const dir = y > lastY ? 'down' : 'up';
+      lastY = y;
+
+      Animated.timing(slideAnim, {
+        toValue:         dir === 'down' && y > 40 ? barHeight + 12 : 0,
+        duration:        230,
+        easing:          Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    };
+
+    // Poll every 300ms until we find the scrollable container
+    const tryAttach = () => {
+      // RN Web renders FlatList inside a div with overflow:scroll/auto
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>('div'));
+      const scrollable = candidates.find(
+        (el) =>
+          el.scrollHeight > el.clientHeight + 10 &&
+          (getComputedStyle(el).overflowY === 'scroll' ||
+           getComputedStyle(el).overflowY === 'auto') &&
+          el.clientHeight > 100
+      );
+
+      if (scrollable && scrollable !== attached) {
+        if (attached) attached.removeEventListener('scroll', onNativeScroll);
+        scrollable.addEventListener('scroll', onNativeScroll, { passive: true });
+        attached = scrollable;
+      }
+    };
+
+    const interval = setInterval(tryAttach, 300);
+    tryAttach(); // run immediately
+
+    return () => {
+      clearInterval(interval);
+      if (attached) attached.removeEventListener('scroll', onNativeScroll);
+    };
+  }, [barHeight]);
+
+  // Web glass style uses real CSS backdrop-filter
+  const webStyle = Platform.OS === 'web' ? {
+    backdropFilter:         'blur(28px) saturate(160%)',
+    WebkitBackdropFilter:   'blur(28px) saturate(160%)',
+  } : {};
 
   return (
     <Animated.View
@@ -182,87 +178,89 @@ export const GlassTabBar: React.FC<GlassTabBarProps> = ({
         { height: barHeight, transform: [{ translateY: slideAnim }] },
       ]}
     >
-      {/* Glass layer — iOS BlurView / Android fallback */}
-      {Platform.OS === 'ios' ? (
-        <BlurView
-          style={StyleSheet.absoluteFill}
-          blurType="chromeMaterialDark"
-          blurAmount={20}
-          reducedTransparencyFallbackColor={colors.navy}
-        />
-      ) : (
-        <View style={[StyleSheet.absoluteFill, styles.androidBg]} />
-      )}
+      {/* Glass base layer */}
+      <View style={[StyleSheet.absoluteFill, styles.glassBase, webStyle as any]} />
 
-      {/* Colour tint overlay */}
+      {/* Warm tint overlay — gives the iOS "frosted" warm cast */}
       <View style={[StyleSheet.absoluteFill, styles.tint]} />
 
-      {/* Top highlight border */}
-      <View style={styles.topBorder} />
+      {/* Specular top-edge highlight (the bright 0.5px line) */}
+      <View style={styles.topHighlight} />
 
-      {Inner}
+      {/* Tab buttons */}
+      <View style={[styles.inner, { paddingBottom: insets.bottom }]}>
+        {TABS.map((tab) => (
+          <TabButton
+            key={tab.key}
+            tabKey={tab.key}
+            label={tab.label}
+            Icon={tab.Icon}
+            isCenter={tab.isCenter}
+            isActive={activeTab === tab.key}
+            onPress={() => onTabPress(tab.key)}
+          />
+        ))}
+      </View>
     </Animated.View>
   );
 };
 
-// ── Scroll-aware scroll view helper (export for parent use) ───────────────────
-export { };   // keeps the module clean
+export const GlassTabBar = forwardRef(GlassTabBarInner);
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
-    position:  'absolute',
-    bottom:    0,
-    left:      0,
-    right:     0,
-    overflow:  'hidden',
-    // Drop shadow
+    position:      'absolute',
+    bottom:        0,
+    left:          0,
+    right:         0,
+    overflow:      'hidden',
     shadowColor:   '#000',
     shadowOffset:  { width: 0, height: -4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius:  16,
-    elevation:     20,
+    elevation:     24,
   },
-  androidBg: {
-    backgroundColor: 'rgba(18, 24, 38, 0.92)',
+  glassBase: {
+    // Native: dark navy semi-transparent (simulates glass on dark content)
+    backgroundColor: 'rgba(16, 22, 36, 0.78)',
   },
   tint: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    // Very light warm film — the "frosted" warmth
+    backgroundColor: 'rgba(255, 255, 255, 0.055)',
   },
-  topBorder: {
+  topHighlight: {
     position:        'absolute',
     top:             0,
     left:            0,
     right:           0,
     height:          0.5,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
   },
   inner: {
-    flex:           1,
-    flexDirection:  'row',
-    alignItems:     'center',
-    paddingHorizontal: spacing.s,
+    flex:             1,
+    flexDirection:    'row',
+    alignItems:       'center',
+    paddingHorizontal: 4,
+    paddingTop:       6,
   },
-  // Regular tab
   tabBtn: {
     flex:           1,
     alignItems:     'center',
     justifyContent: 'center',
+    paddingVertical: 4,
     gap:            3,
-    paddingTop:     spacing.s,
   },
   tabLabel: {
     fontFamily: typography.fonts.dmSans.medium,
-    fontSize:   typography.sizes.xs,
+    fontSize:   10,
     lineHeight: 12,
   },
-  // Center add button
   centerWrapper: {
     flex:           1,
     alignItems:     'center',
     justifyContent: 'flex-start',
-    paddingTop:     0,
-    marginTop:      -18,           // lifts the button above the bar
+    marginTop:      -22,
   },
   centerBtn: {
     width:           52,
@@ -271,14 +269,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.forest,
     alignItems:      'center',
     justifyContent:  'center',
-    // Glow
-    shadowColor:    colors.forest,
-    shadowOffset:   { width: 0, height: 4 },
-    shadowOpacity:  0.55,
-    shadowRadius:   12,
-    elevation:      12,
-    // Subtle inner border
-    borderWidth:    0.5,
-    borderColor:    'rgba(255,255,255,0.3)',
+    shadowColor:     colors.forest,
+    shadowOffset:    { width: 0, height: 4 },
+    shadowOpacity:   0.65,
+    shadowRadius:    12,
+    elevation:       14,
+    borderWidth:     0.5,
+    borderColor:     'rgba(255,255,255,0.3)',
   },
 });
